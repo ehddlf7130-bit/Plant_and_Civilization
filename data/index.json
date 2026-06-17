@@ -1,0 +1,6 @@
+{
+  "weeks": [
+    { "week": "09", "title": "9주차", "file": "week09.json" }
+  ],
+  "essay": { "title": "서술형 문제", "file": "essay.json" }
+}

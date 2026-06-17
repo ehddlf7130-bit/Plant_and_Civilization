@@ -1,0 +1,53 @@
+{
+  "week": "09",
+  "title": "9주차 · 예시",
+  "questions": [
+    {
+      "id": "w09-1",
+      "type": "single",
+      "question": "단일 정답 예시 문제",
+      "choices": [
+        { "text": "보기 A", "correct": false },
+        { "text": "보기 B", "correct": true },
+        { "text": "보기 C", "correct": false },
+        { "text": "보기 D", "correct": false }
+      ],
+      "explanation": "정답이 B인 이유."
+    },
+    {
+      "id": "w09-2",
+      "type": "multiple",
+      "question": "복수 정답 예시 문제 (모두 고르시오)",
+      "choices": [
+        { "text": "보기 1", "correct": true },
+        { "text": "보기 2", "correct": false },
+        { "text": "보기 3", "correct": true },
+        { "text": "보기 4", "correct": false }
+      ],
+      "explanation": "1번과 3번이 정답."
+    },
+    {
+      "id": "w09-3",
+      "type": "single",
+      "showCount": 5,
+      "question": "선지 7개 중 5개만 무작위로 보여주는 예시",
+      "choices": [
+        { "text": "정답", "correct": true },
+        { "text": "오답1", "correct": false },
+        { "text": "오답2", "correct": false },
+        { "text": "오답3", "correct": false },
+        { "text": "오답4", "correct": false },
+        { "text": "오답5", "correct": false },
+        { "text": "오답6", "correct": false }
+      ],
+      "explanation": "정답 1개 + 무작위 오답 4개 = 5개 표시."
+    },
+    {
+      "id": "w09-4",
+      "type": "short",
+      "question": "단답형 예시 문제",
+      "answers": ["메소포타미아", "메소포타미아 문명"],
+      "explanation": "answers 중 하나만 맞아도 정답."
+    }
+  ]
+}

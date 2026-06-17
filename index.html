@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시험 사이트 · 메인 메뉴</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <h1>시험 사이트</h1>
+      <p class="subtitle">주차별 시험 · 합본 · 서술형</p>
+    </header>
+
+    <section id="menu" class="menu" aria-live="polite">
+      <p class="loading">메뉴를 불러오는 중…</p>
+    </section>
+
+    <footer class="page-footer">
+      <p>학습용 정적 사이트 · 점수 기록 없음</p>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var menu = document.getElementById('menu');
+
+      function el(tag, className, text) {
+        var n = document.createElement(tag);
+        if (className) n.className = className;
+        if (text != null) n.textContent = text;
+        return n;
+      }
+
+      function render(data) {
+        menu.innerHTML = '';
+
+        var weeks = (data && Array.isArray(data.weeks)) ? data.weeks : [];
+
+        // 주차 섹션
+        var weekCard = el('div', 'card');
+        weekCard.appendChild(el('h2', null, '주차별 시험'));
+        if (weeks.length === 0) {
+          weekCard.appendChild(el('p', 'muted', '등록된 주차가 없습니다.'));
+        } else {
+          var list = el('div', 'link-list');
+          weeks.forEach(function (w) {
+            if (!w || w.week == null) return;
+            var a = el('a', 'menu-link');
+            a.href = 'quiz.html?week=' + encodeURIComponent(w.week);
+            a.textContent = w.title || (w.week + '주차');
+            list.appendChild(a);
+          });
+          weekCard.appendChild(list);
+
+          // 전체 합본
+          var allLink = el('a', 'menu-link menu-link-accent');
+          allLink.href = 'quiz.html?week=all';
+          allLink.textContent = '전체 합본 (모든 주차)';
+          weekCard.appendChild(allLink);
+        }
+        menu.appendChild(weekCard);
+
+        // 서술형 섹션
+        if (data && data.essay && data.essay.file) {
+          var essayCard = el('div', 'card');
+          essayCard.appendChild(el('h2', null, '서술형'));
+          var ea = el('a', 'menu-link menu-link-accent');
+          ea.href = 'essay.html';
+          ea.textContent = data.essay.title || '서술형 문제';
+          essayCard.appendChild(ea);
+          menu.appendChild(essayCard);
+        }
+      }
+
+      fetch('data/index.json')
+        .then(function (res) {
+          if (!res.ok) throw new Error('index.json 로드 실패: ' + res.status);
+          return res.json();
+        })
+        .then(render)
+        .catch(function (err) {
+          console.error(err);
+          menu.innerHTML = '';
+          var c = el('div', 'card');
+          c.appendChild(el('p', 'error', '메뉴를 불러오지 못했습니다.'));
+          c.appendChild(el('p', 'muted', '로컬에서는 python3 -m http.server 로 실행해야 합니다 (README 참고).'));
+          menu.appendChild(c);
+        });
+    })();
+  </script>
+</body>
+</html>

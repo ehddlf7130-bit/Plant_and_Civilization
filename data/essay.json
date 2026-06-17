@@ -1,0 +1,7 @@
+{
+  "title": "서술형 문제",
+  "questions": [
+    { "id": "e-1", "question": "서술형 예시 문제", "modelAnswer": "모범답안.\n줄바꿈은 \\n." },
+    { "id": "e-2", "question": "두 번째 서술형 예시", "modelAnswer": "모범답안." }
+  ]
+}

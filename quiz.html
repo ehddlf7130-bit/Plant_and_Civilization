@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시험 풀이</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <h1 id="quiz-title">시험</h1>
+      <p class="subtitle"><a class="back-link" href="index.html">← 메뉴로</a></p>
+    </header>
+
+    <section id="quiz-status" aria-live="polite">
+      <p class="loading">문제를 불러오는 중…</p>
+    </section>
+
+    <form id="quiz-form"></form>
+
+    <div id="quiz-actions" class="actions" hidden>
+      <button type="button" id="submit-btn" class="btn btn-primary">제출</button>
+    </div>
+
+    <section id="result" class="result" hidden></section>
+
+    <div id="result-actions" class="actions" hidden>
+      <button type="button" id="retry-btn" class="btn btn-primary">다시 풀기</button>
+      <a class="btn btn-secondary" href="index.html">메뉴로</a>
+    </div>
+  </main>
+
+  <script src="js/quiz.js"></script>
+</body>
+</html>
