@@ -3,9 +3,8 @@
 
   var titleEl = document.getElementById('quiz-title');
   var statusEl = document.getElementById('quiz-status');
+  var progressEl = document.getElementById('quiz-progress');
   var formEl = document.getElementById('quiz-form');
-  var quizActions = document.getElementById('quiz-actions');
-  var submitBtn = document.getElementById('submit-btn');
   var resultEl = document.getElementById('result');
   var resultActions = document.getElementById('result-actions');
   var retryBtn = document.getElementById('retry-btn');
@@ -14,6 +13,8 @@
   var preparedQuestions = [];
   // "다시 풀기"를 위해 원본 문제 목록을 보관
   var originalQuestions = [];
+  // 문항별 채점 상태: { graded: bool, correct: bool }
+  var states = [];
 
   // ---------- 유틸 ----------
   function getParam(name) {
@@ -172,16 +173,21 @@
   function renderQuiz(rawQuestions) {
     originalQuestions = rawQuestions;
     preparedQuestions = prepareQuestions(rawQuestions);
+    states = preparedQuestions.map(function () {
+      return { graded: false, correct: false };
+    });
 
     formEl.innerHTML = '';
     resultEl.hidden = true;
     resultEl.innerHTML = '';
     resultActions.hidden = true;
-    quizActions.hidden = false;
+    progressEl.hidden = false;
     window.scrollTo(0, 0);
 
     preparedQuestions.forEach(function (q, idx) {
       var card = el('div', 'question');
+      card.id = 'card-' + idx;
+
       var head = el('div', 'question-head');
       head.appendChild(el('span', 'q-number', (idx + 1) + '.'));
       head.appendChild(el('span', 'q-text', q.question || ''));
@@ -213,11 +219,39 @@
         card.appendChild(inp);
       }
 
+      // 문항 전용 "확인" 버튼 + 결과 영역
+      var actions = el('div', 'q-actions');
+      var confirmBtn = el('button', 'btn btn-primary btn-confirm', '확인');
+      confirmBtn.type = 'button';
+      confirmBtn.addEventListener('click', function () {
+        confirmQuestion(idx);
+      });
+      actions.appendChild(confirmBtn);
+      card.appendChild(actions);
+
+      var feedback = el('div', 'q-feedback');
+      feedback.hidden = true;
+      card.appendChild(feedback);
+
       formEl.appendChild(card);
     });
+
+    updateProgress();
   }
 
   // ---------- 채점 ----------
+  // 답을 했는지 검사 (빈 입력/미선택 판별)
+  function hasAnswer(q, idx) {
+    if (q.type === 'single' || q.type === 'multiple') {
+      return !!formEl.querySelector('input[name="q' + idx + '"]:checked');
+    }
+    if (q.type === 'short') {
+      var field = formEl.querySelector('input[name="q' + idx + '"]');
+      return normalize(field ? field.value : '') !== '';
+    }
+    return false;
+  }
+
   function gradeQuestion(q, idx) {
     var result = { correct: false, type: q.type };
 
@@ -240,7 +274,6 @@
         if (c.correct && !isPicked) allMatch = false;
         if (!c.correct && isPicked) allMatch = false;
       });
-      // 최소 한 개의 정답이 존재한다고 가정. 아무것도 안 골랐고 정답이 있으면 오답.
       result.correct = allMatch;
     } else if (q.type === 'short') {
       var field = formEl.querySelector('input[name="q' + idx + '"]');
@@ -258,104 +291,133 @@
     return result;
   }
 
-  function renderResult() {
-    var total = preparedQuestions.length;
-    var correctCount = 0;
-    var graded = preparedQuestions.map(function (q, idx) {
-      var g = gradeQuestion(q, idx);
-      if (g.correct) correctCount++;
-      return g;
+  // 카드 안의 입력을 잠근다
+  function lockInputs(idx) {
+    var inputs = formEl.querySelectorAll('[name="q' + idx + '"]');
+    Array.prototype.forEach.call(inputs, function (n) {
+      n.disabled = true;
     });
+    var card = document.getElementById('card-' + idx);
+    if (card) {
+      var labels = card.querySelectorAll('.choice');
+      Array.prototype.forEach.call(labels, function (l) {
+        l.classList.add('locked');
+      });
+    }
+  }
+
+  // ---------- 문항별 확인 ----------
+  function confirmQuestion(idx) {
+    if (states[idx].graded) return;
+
+    var q = preparedQuestions[idx];
+    var card = document.getElementById('card-' + idx);
+    var feedback = card.querySelector('.q-feedback');
+
+    // 미응답이면 안내만, 채점/잠금 안 함
+    if (!hasAnswer(q, idx)) {
+      feedback.hidden = false;
+      feedback.className = 'q-feedback hint-only';
+      feedback.innerHTML = '';
+      var msg = (q.type === 'short') ? '답을 입력하세요.' : '답을 선택하세요.';
+      feedback.appendChild(el('p', 'feedback-msg', msg));
+      return;
+    }
+
+    var g = gradeQuestion(q, idx);
+    states[idx] = { graded: true, correct: g.correct };
+
+    // 입력 잠금
+    lockInputs(idx);
+
+    // 확인 버튼 비활성화
+    var confirmBtn = card.querySelector('.btn-confirm');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    // 카드 정/오답 색상
+    card.classList.remove('is-correct', 'is-wrong');
+    card.classList.add(g.correct ? 'is-correct' : 'is-wrong');
+
+    // 선지 강조 (single/multiple)
+    if (q.type === 'single' || q.type === 'multiple') {
+      var labels = card.querySelectorAll('.choice');
+      q.choices.forEach(function (c, ci) {
+        var label = labels[ci];
+        if (!label) return;
+        var isPicked = (q.type === 'single')
+          ? (g.pickedIdx === ci)
+          : !!(g.pickedSet && g.pickedSet[ci]);
+        if (c.correct) {
+          label.classList.add('choice-correct');
+        } else if (isPicked) {
+          label.classList.add('choice-wrong');
+        }
+      });
+    }
+
+    // 피드백 영역 구성
+    feedback.hidden = false;
+    feedback.className = 'q-feedback ' + (g.correct ? 'is-correct' : 'is-wrong');
+    feedback.innerHTML = '';
+
+    var verdict = el('div', 'verdict ' + (g.correct ? 'ok' : 'no'), g.correct ? '정답' : '오답');
+    feedback.appendChild(verdict);
+
+    if (q.type === 'short') {
+      var ansLine = el('div', 'answer-line');
+      ansLine.appendChild(el('strong', null, '허용 정답: '));
+      var answers = Array.isArray(q.answers) ? q.answers : [];
+      ansLine.appendChild(document.createTextNode(answers.join(', ')));
+      feedback.appendChild(ansLine);
+    }
+
+    if (q.explanation) {
+      var exp = el('div', 'explanation');
+      exp.appendChild(el('strong', null, '해설  '));
+      exp.appendChild(document.createTextNode(q.explanation));
+      feedback.appendChild(exp);
+    }
+
+    updateProgress();
+    maybeShowSummary();
+  }
+
+  // ---------- 진행 표시 ----------
+  function countSolved() {
+    var solved = 0;
+    var correct = 0;
+    states.forEach(function (s) {
+      if (s.graded) {
+        solved++;
+        if (s.correct) correct++;
+      }
+    });
+    return { solved: solved, correct: correct };
+  }
+
+  function updateProgress() {
+    var total = preparedQuestions.length;
+    var c = countSolved();
+    progressEl.textContent = '푼 문제 ' + c.solved + '/' + total + ' · 맞음 ' + c.correct;
+  }
+
+  // ---------- 최종 요약 ----------
+  function maybeShowSummary() {
+    var total = preparedQuestions.length;
+    var c = countSolved();
+    if (c.solved < total) return;
 
     resultEl.innerHTML = '';
-
-    // 점수 카드
     var scoreCard = el('div', 'score-card');
-    var score = el('div', 'score', correctCount + ' / ' + total);
-    scoreCard.appendChild(score);
+    scoreCard.appendChild(el('div', 'score', c.correct + ' / ' + total));
     scoreCard.appendChild(el('div', 'score-label', '맞은 수 / 전체 수'));
     resultEl.appendChild(scoreCard);
 
-    // 문제별 결과
-    preparedQuestions.forEach(function (q, idx) {
-      var g = graded[idx];
-      var card = el('div', 'result-q ' + (g.correct ? 'is-correct' : 'is-wrong'));
-
-      var head = el('div', 'question-head');
-      var num = el('span', 'q-number', (idx + 1) + '.');
-      head.appendChild(num);
-      var qtext = el('span', 'q-text', q.question || '');
-      head.appendChild(qtext);
-      var verdict = el('span', 'verdict ' + (g.correct ? 'ok' : 'no'), g.correct ? '정답' : '오답');
-      head.appendChild(verdict);
-      card.appendChild(head);
-
-      if (q.type === 'single' || q.type === 'multiple') {
-        var ul = el('ul', 'result-choices');
-        q.choices.forEach(function (c, ci) {
-          var li = el('li', null);
-          var isPicked = (q.type === 'single')
-            ? (g.pickedIdx === ci)
-            : !!(g.pickedSet && g.pickedSet[ci]);
-
-          li.appendChild(document.createTextNode(c.text));
-
-          if (c.correct) {
-            li.className = 'c-correct';
-            var t1 = el('span', 'tag', '  ✓ 정답');
-            li.appendChild(t1);
-            if (isPicked) {
-              var t2 = el('span', 'tag', ' (내 선택)');
-              li.appendChild(t2);
-            }
-          } else if (isPicked) {
-            li.className = 'c-wrong-pick';
-            var t3 = el('span', 'tag', '  ✗ 내 선택');
-            li.appendChild(t3);
-          }
-          ul.appendChild(li);
-        });
-        card.appendChild(ul);
-      } else if (q.type === 'short') {
-        var myLine = el('div', 'answer-line');
-        myLine.innerHTML = '';
-        var myStrong = el('strong', null, '내 답: ');
-        myLine.appendChild(myStrong);
-        myLine.appendChild(document.createTextNode(g.input && g.input.trim() ? g.input : '(빈칸)'));
-        card.appendChild(myLine);
-
-        var ansLine = el('div', 'answer-line');
-        var ansStrong = el('strong', null, '허용 정답: ');
-        ansLine.appendChild(ansStrong);
-        var answers = Array.isArray(q.answers) ? q.answers : [];
-        ansLine.appendChild(document.createTextNode(answers.join(', ')));
-        card.appendChild(ansLine);
-      }
-
-      if (q.explanation) {
-        var exp = el('div', 'explanation');
-        var es = el('strong', null, '해설  ');
-        exp.appendChild(es);
-        exp.appendChild(document.createTextNode(q.explanation));
-        card.appendChild(exp);
-      }
-
-      resultEl.appendChild(card);
-    });
-
-    // 화면 전환
-    formEl.innerHTML = '';
-    quizActions.hidden = true;
     resultEl.hidden = false;
     resultActions.hidden = false;
-    window.scrollTo(0, 0);
   }
 
   // ---------- 이벤트 ----------
-  submitBtn.addEventListener('click', function () {
-    renderResult();
-  });
-
   retryBtn.addEventListener('click', function () {
     // 보관해 둔 원본으로 문제·선지를 새로 셔플해서 처음부터 다시.
     renderQuiz(originalQuestions);

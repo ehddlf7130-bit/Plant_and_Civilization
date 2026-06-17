@@ -248,6 +248,93 @@ body {
   background: #e2e5ea;
 }
 
+/* Progress (sticky) */
+.progress {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--accent);
+}
+
+/* Per-question grading */
+.question.is-correct {
+  border-left: 5px solid var(--correct-border);
+}
+
+.question.is-wrong {
+  border-left: 5px solid var(--wrong-border);
+}
+
+.choice.locked {
+  cursor: default;
+}
+
+.choice.locked:hover {
+  background: transparent;
+}
+
+.choice.choice-correct {
+  background: var(--correct-bg);
+  border-color: var(--correct-border);
+  color: var(--correct-text);
+}
+
+.choice.choice-wrong {
+  background: var(--wrong-bg);
+  border-color: var(--wrong-border);
+  color: var(--wrong-text);
+}
+
+.q-actions {
+  margin-top: 14px;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.q-feedback {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.q-feedback.is-correct {
+  background: var(--correct-bg);
+  border-color: var(--correct-border);
+}
+
+.q-feedback.is-wrong {
+  background: var(--wrong-bg);
+  border-color: var(--wrong-border);
+}
+
+.q-feedback.hint-only {
+  background: #fffbea;
+  border-color: #fde68a;
+}
+
+.feedback-msg {
+  margin: 0;
+  font-weight: 600;
+  color: #92660b;
+}
+
+.q-feedback .verdict {
+  margin-left: 0;
+  margin-bottom: 6px;
+}
+
 /* Result */
 .result {
   margin-top: 8px;
