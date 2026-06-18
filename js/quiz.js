@@ -5,9 +5,15 @@
   var statusEl = document.getElementById('quiz-status');
   var progressEl = document.getElementById('quiz-progress');
   var formEl = document.getElementById('quiz-form');
+  var filterActions = document.getElementById('filter-actions');
+  var filterWrongBtn = document.getElementById('filter-wrong-btn');
+  var filterNotice = document.getElementById('filter-notice');
   var resultEl = document.getElementById('result');
   var resultActions = document.getElementById('result-actions');
   var retryBtn = document.getElementById('retry-btn');
+
+  // "틀린 문제만 보기" 필터 상태
+  var filterMode = false;
 
   // 현재 화면에 표출된(준비된) 문제 목록을 보관
   var preparedQuestions = [];
@@ -182,6 +188,12 @@
     resultEl.innerHTML = '';
     resultActions.hidden = true;
     progressEl.hidden = false;
+    // 필터 초기화: "전체 보기" 상태로
+    filterMode = false;
+    filterActions.hidden = false;
+    filterWrongBtn.textContent = '틀린 문제만 보기';
+    filterNotice.hidden = true;
+    filterNotice.textContent = '';
     window.scrollTo(0, 0);
 
     preparedQuestions.forEach(function (q, idx) {
@@ -417,7 +429,47 @@
     resultActions.hidden = false;
   }
 
+  // ---------- 틀린 문제만 보기 필터 ----------
+  function applyFilter() {
+    if (!filterMode) {
+      // 전체 보기: 모든 카드 표시, 안내 숨김
+      preparedQuestions.forEach(function (q, idx) {
+        var card = document.getElementById('card-' + idx);
+        if (card) card.hidden = false;
+      });
+      filterNotice.hidden = true;
+      filterNotice.textContent = '';
+      filterWrongBtn.textContent = '틀린 문제만 보기';
+      return;
+    }
+
+    // 틀린 문제만: 채점되어 오답으로 확정된 문제만 표시
+    var wrongCount = 0;
+    preparedQuestions.forEach(function (q, idx) {
+      var card = document.getElementById('card-' + idx);
+      if (!card) return;
+      var isWrong = states[idx].graded && !states[idx].correct;
+      card.hidden = !isWrong;
+      if (isWrong) wrongCount++;
+    });
+
+    filterWrongBtn.textContent = '전체 보기';
+    if (wrongCount === 0) {
+      filterNotice.hidden = false;
+      filterNotice.textContent = '틀린 문제가 없습니다.';
+    } else {
+      filterNotice.hidden = true;
+      filterNotice.textContent = '';
+    }
+  }
+
   // ---------- 이벤트 ----------
+  filterWrongBtn.addEventListener('click', function () {
+    filterMode = !filterMode;
+    applyFilter();
+    window.scrollTo(0, 0);
+  });
+
   retryBtn.addEventListener('click', function () {
     // 보관해 둔 원본으로 문제·선지를 새로 셔플해서 처음부터 다시.
     renderQuiz(originalQuestions);

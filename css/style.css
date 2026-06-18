@@ -497,6 +497,14 @@ body {
   margin-bottom: 6px;
 }
 
+.model-answer .ma-para {
+  margin: 0 0 10px;
+}
+
+.model-answer .ma-para:last-child {
+  margin-bottom: 0;
+}
+
 /* States */
 .loading {
   color: var(--muted);
