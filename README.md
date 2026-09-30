@@ -1,7 +1,21 @@
 # 시험 사이트 (정적)
 
 빌드 도구·프레임워크·외부 라이브러리 없이 **순수 HTML + CSS + 바닐라 JS**로 만든 정적 시험 사이트입니다.
-GitHub Pages에 그대로 올려서 사용할 수 있습니다. 점수 기록·시간제한 기능은 없습니다.
+점수 기록·시간제한 기능은 없습니다.
+
+## 배포 완료 ✅
+
+GitHub Pages 배포가 완료되어 아래 주소에서 바로 이용할 수 있습니다.
+
+**➡️ https://ehddlf7130-bit.github.io/Plant_and_Civilization/**
+
+| 페이지 | 주소 |
+| --- | --- |
+| 메인 메뉴 | https://ehddlf7130-bit.github.io/Plant_and_Civilization/ |
+| 객관식·단답형 | https://ehddlf7130-bit.github.io/Plant_and_Civilization/quiz.html |
+| 서술형 | https://ehddlf7130-bit.github.io/Plant_and_Civilization/essay.html |
+
+`main` 브랜치에 푸시하면 자동으로 다시 배포됩니다.
 
 ## 폴더 구조
 
@@ -82,12 +96,23 @@ http://localhost:8000/
 자동 채점이 없습니다. `modelAnswer`(모범답안)만 "정답 확인" 버튼으로 펼쳐 보여줍니다.
 `\n` 은 줄바꿈으로 렌더됩니다.
 
-## 3. GitHub Pages 배포
+## 3. GitHub Pages 배포 (완료됨)
 
-1. 이 저장소를 GitHub에 푸시합니다.
-2. 저장소 **Settings → Pages** 로 이동합니다.
-3. **Source** 를 `Deploy from a branch` 로 두고, 브랜치(`main`)와 폴더(`/root`)를 선택해 저장합니다.
-4. 잠시 후 `https://<아이디>.github.io/<저장소>/` 에서 사이트가 열립니다.
+배포 설정이 이미 끝나 있습니다. 현재 설정은 다음과 같습니다.
+
+- **Source**: `Deploy from a branch`
+- **Branch / Folder**: `main` / `/ (root)`
+- **주소**: https://ehddlf7130-bit.github.io/Plant_and_Civilization/
+
+따라서 이후에는 **`main` 에 푸시하기만 하면 됩니다.**
+
+```bash
+git add .
+git commit -m "문제 추가"
+git push origin main
+```
+
+푸시 후 1분 내외로 사이트에 반영됩니다. (반영이 늦으면 브라우저 강력 새로고침 `Ctrl+Shift+R`)
 
 모든 경로가 상대경로라 프로젝트 페이지(하위 경로) 환경에서도 그대로 동작합니다.
 
